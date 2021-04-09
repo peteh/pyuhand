@@ -6,6 +6,8 @@ from .motion import Motion, MotionFrame
 class UHand(object):
     def __init__(self, comPort):
         self._axes = []
+
+        # TODO: double check all limits
         self._axes.append(Axis(1, "Thumb", 800, 2400, reverse = True))
         self._axes.append(Axis(2, "Index", 750, 2100))
         self._axes.append(Axis(3, "Middle", 700, 2000))

@@ -58,7 +58,6 @@ class MotionFrame(object):
     
     def setAxisTarget(self, axisId, targetValue):
         self._axisValues[axisId] = targetValue
-        print(self._axisValues)
 
     def setTimeMs(self, timeMs):
         self._timeMs = timeMs
