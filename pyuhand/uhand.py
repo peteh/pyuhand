@@ -75,7 +75,7 @@ class Axis(object):
         if value > self._highLimit:
             print("Axis %d command is bigger than limit - clamping, limit: %d, command: %d" % (self._axisId, self._highLimit, value))
             value = self._highLimit
-        print("Setting axix %d to %d" % (self._axisId, value))
+        print("Setting axis %d to %d" % (self._axisId, value))
         self._value = value
     
     def setTargetPercent(self, percent):
