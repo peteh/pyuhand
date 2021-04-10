@@ -9,7 +9,7 @@ class UHand(object):
 
         # TODO: double check all limits
         self._axes.append(Axis(1, "Thumb", 800, 2400, reverse = True))
-        self._axes.append(Axis(2, "Index", 750, 2100))
+        self._axes.append(Axis(2, "Index", 800, 2000)) # overwrite offical limit because mine has a screw there
         self._axes.append(Axis(3, "Middle", 700, 2000))
         self._axes.append(Axis(4, "Ring", 800, 2050))
         self._axes.append(Axis(5, "Pinky", 800, 2050))
@@ -17,10 +17,9 @@ class UHand(object):
         self._comPort = comPort
 
         baudrate = 9600
-        try:
-            self.serial = serial.Serial(self._comPort, baudrate, timeout=3)
-        except Exception as e:
-            print(e)
+
+        self.serial = serial.Serial(self._comPort, baudrate, timeout=3)
+
     
     def _singleServoCtrlVal(self, no,speed,value):
         val_byte = struct.pack('<H', int(value))
@@ -70,14 +69,23 @@ class Axis(object):
 
     def setTargetValue(self, value):
         # TODO: sanity check
+        if value < self._lowLimit:
+            print("Axis %d command is smaller than limit - clamping, limit: %d, command: %d" % (self._axisId, self._lowLimit, value))
+            value = self._lowLimit
+        if value > self._highLimit:
+            print("Axis %d command is bigger than limit - clamping, limit: %d, command: %d" % (self._axisId, self._highLimit, value))
+            value = self._highLimit
+        print("Setting axix %d to %d" % (self._axisId, value))
         self._value = value
     
     def setTargetPercent(self, percent):
         # todo check range
         if(self._reverse):
-            self._value = (int) (self._highLimit-(percent*((self._highLimit - self._lowLimit)/100)))
+            value = (int) (self._highLimit-(percent*((self._highLimit - self._lowLimit)/100)))
+            self.setTargetValue(value)
         else:
-            self._value = (int) (self._lowLimit+(percent*((self._highLimit - self._lowLimit)/100)))
+            value = (int) (self._lowLimit+(percent*((self._highLimit - self._lowLimit)/100)))
+            self.setTargetValue(value)
 
     def getId(self):
         return int(self._axisId)
