@@ -22,7 +22,8 @@ class UHandSkill(object):
         # subscribe to all messages
         client.subscribe('hermes/intent/uhand:hello')
         client.subscribe('hermes/intent/uhand:owen')	
-    
+        client.subscribe('hermes/intent/uhand:blabla')	
+
     def start(self):
         self._mqtt_client.connect('rhasspy.local', 1883)
         self._msgThread.start()
@@ -96,7 +97,9 @@ class UHandSkill(object):
         if("uhand:insult" in msg.topic):
             text = "Hello Peter. I wish you a beatiful day!"
             function = self._wave
-
+        if("uhand:blabla" in msg.topic):
+            text = "Bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
+            function = self._point
         if("uhand:owen" in msg.topic):
             text = "Why are you gay? You are gay! Should I call you mista?"
             function = self._point
