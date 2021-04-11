@@ -7,7 +7,7 @@ import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-uhand = pyuhand.UHand("/dev/ttyUSB1")
+uhand = pyuhand.UHand("/dev/ttyUSB0")
 
 def angle(v1, v2, acute = True):
     angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
