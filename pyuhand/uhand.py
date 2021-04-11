@@ -25,7 +25,7 @@ class UHand(object):
         val_byte = struct.pack('<H', int(value))
         speed_byte = struct.pack('<H',speed)
         val_bytearray = bytearray([85,85,8,3,1,speed_byte[0],speed_byte[1],no,val_byte[0],val_byte[1]])
-        self.serial.write(val_bytearray)
+        return val_bytearray
 
     def getAxisByAxisId(self, axisId):
         for axis in self._axes:
@@ -45,8 +45,15 @@ class UHand(object):
             axis.setTargetPercent(percent)
 
     def write(self, timeDeltaMs = 1000.):
+        builder = ProtocolCommandBuilder(timeDeltaMs)
         for axis in self._axes:
-            self._singleServoCtrlVal(axis.getId(), int(timeDeltaMs), axis._value)
+            
+            builder.addAxisCommand(axis.getId(), axis.getValue())
+
+            
+            command = self._singleServoCtrlVal(axis.getId(), int(timeDeltaMs), axis.getValue())
+        buildCommand = builder.build()
+        self.serial.write(buildCommand)
         time.sleep(timeDeltaMs/1000.)
     
     def executeMotion(self, motion):
@@ -55,7 +62,28 @@ class UHand(object):
                 self.setTargetValue(axisId, value)
             self.write(frame.getTimeMs())
 
+class ProtocolCommandBuilder(object): 
+    def __init__(self, timeMs):
+        self._commands = []
+        self._timeMs = timeMs
     
+    def addAxisCommand(self, axisId, value):
+        self._commands.append((axisId, value))
+    
+    def build(self):
+        length = len(self._commands) * 3 + 5
+        header = 85
+        commandId = 3
+        servos = len(self._commands)
+        speed_byte = struct.pack('<H',self._timeMs)
+        val_bytearray = bytearray([header, header, length, commandId, servos, speed_byte[0],speed_byte[1],])
+        
+        for (axisId, value) in self._commands:
+            val_byte = struct.pack('<H', int(value))
+            
+            val_bytearray.extend(bytearray([axisId,val_byte[0],val_byte[1]]))
+        return val_bytearray
+                
 
 
 class Axis(object):
@@ -75,11 +103,20 @@ class Axis(object):
         if value > self._highLimit:
             print("Axis %d command is bigger than limit - clamping, limit: %d, command: %d" % (self._axisId, self._highLimit, value))
             value = self._highLimit
-        print("Setting axis %d to %d" % (self._axisId, value))
         self._value = value
-    
+
+    def getValue(self):
+        return self._value
+
+    def _clampPercent(self, value):
+        if value < 0:
+            return 0
+        if value > 100:
+            return 100
+        return value
+
     def setTargetPercent(self, percent):
-        # todo check range
+        percent = self._clampPercent(percent)
         if(self._reverse):
             value = (int) (self._highLimit-(percent*((self._highLimit - self._lowLimit)/100)))
             self.setTargetValue(value)
