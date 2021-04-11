@@ -47,10 +47,9 @@ class UHand(object):
     def write(self, timeDeltaMs = 1000.):
         builder = ProtocolCommandBuilder(timeDeltaMs)
         for axis in self._axes:
-            
-            builder.addAxisCommand(axis.getId(), axis.getValue())
-
-            
+            if axis.needsExecution():
+                builder.addAxisCommand(axis.getId(), axis.getValue())
+                axis.markExecuted()
             command = self._singleServoCtrlVal(axis.getId(), int(timeDeltaMs), axis.getValue())
         buildCommand = builder.build()
         self.serial.write(buildCommand)
@@ -80,7 +79,6 @@ class ProtocolCommandBuilder(object):
         
         for (axisId, value) in self._commands:
             val_byte = struct.pack('<H', int(value))
-            
             val_bytearray.extend(bytearray([axisId,val_byte[0],val_byte[1]]))
         return val_bytearray
                 
@@ -94,6 +92,7 @@ class Axis(object):
         self._highLimit = highLimit
         self._value = lowLimit
         self._reverse = reverse
+        self._needsExecution = True
 
     def setTargetValue(self, value):
         # TODO: sanity check
@@ -103,7 +102,14 @@ class Axis(object):
         if value > self._highLimit:
             print("Axis %d command is bigger than limit - clamping, limit: %d, command: %d" % (self._axisId, self._highLimit, value))
             value = self._highLimit
+        self._needsExecution = True
         self._value = value
+
+    def markExecuted(self):
+        self._needsExecution = False
+    
+    def needsExecution(self):
+        return self._needsExecution
 
     def getValue(self):
         return self._value
