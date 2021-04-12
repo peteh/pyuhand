@@ -97,15 +97,15 @@ class Axis(object):
         self._needsExecution = True
 
     def setTargetValue(self, value):
-        # TODO: sanity check
         if value < self._lowLimit:
             print("Axis %d command is smaller than limit - clamping, limit: %d, command: %d" % (self._axisId, self._lowLimit, value))
             value = self._lowLimit
         if value > self._highLimit:
             print("Axis %d command is bigger than limit - clamping, limit: %d, command: %d" % (self._axisId, self._highLimit, value))
             value = self._highLimit
-        self._needsExecution = True
-        self._value = value
+        if self._value != value:
+            self._needsExecution = True
+            self._value = value
 
     def markExecuted(self):
         self._needsExecution = False
