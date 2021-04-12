@@ -57,7 +57,7 @@ def processLandMarks(hand_landmarks):
     pinkyFingerPercent = calculateFinger(keypoints[17], keypoints[18], keypoints[19], keypoints[20], angleMin, angleMax)
     uhand.setTargetPercent(5, pinkyFingerPercent)
 
-    uhand.write(0)
+    uhand.execute(0)
     
 
 # For webcam input:

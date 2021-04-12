@@ -40,16 +40,16 @@ class UHandSkill(object):
             uhand.setTargetPercent(4, 100)
             uhand.setTargetPercent(5, 100)
             uhand.setTargetPercent(6, 50)
-            uhand.write(500)
+            uhand.execute(500)
             uhand.setTargetPercent(1, 50)
             uhand.setTargetPercent(2, 0)
             uhand.setTargetPercent(3, 0)
             uhand.setTargetPercent(4, 0)
             uhand.setTargetPercent(5, 0)
             uhand.setTargetPercent(6, 50)
-            uhand.write(500)
+            uhand.execute(500)
         uhand.setTargetPercentAll(0)
-        uhand.write(500)
+        uhand.execute(500)
     
     def _point(self):
         for i in range(5):
@@ -59,14 +59,14 @@ class UHandSkill(object):
             uhand.setTargetPercent(4, 0)
             uhand.setTargetPercent(5, 0)
             uhand.setTargetPercent(6, 100)
-            uhand.write(500)
+            uhand.execute(500)
             uhand.setTargetPercent(1, 50)
             uhand.setTargetPercent(2, 60)
             uhand.setTargetPercent(3, 0)
             uhand.setTargetPercent(4, 0)
             uhand.setTargetPercent(5, 0)
             uhand.setTargetPercent(6, 100)
-            uhand.write(500)
+            uhand.execute(500)
         
         uhand.setTargetPercent(1, 0)
         uhand.setTargetPercent(2, 0)
@@ -75,10 +75,10 @@ class UHandSkill(object):
         uhand.setTargetPercent(5, 0)
         uhand.setTargetPercent(6, 0)
 
-        uhand.write(500)
+        uhand.execute(500)
         time.sleep(2)
         uhand.setTargetPercentAll(0)
-        uhand.write(500)
+        uhand.execute(500)
         
     def stop(self):
         print("Skill should end")
