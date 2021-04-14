@@ -76,7 +76,7 @@ class ProtocolCommandBuilder(object):
         header = 85
         commandId = 3
         servos = len(self._commands)
-        speed_byte = struct.pack('<H',self._timeMs)
+        speed_byte = struct.pack('<H', int(self._timeMs))
         val_bytearray = bytearray([header, header, length, commandId, servos, speed_byte[0],speed_byte[1],])
         
         for (axisId, value) in self._commands:
