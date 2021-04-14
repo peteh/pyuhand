@@ -4,9 +4,10 @@ import time
 import numpy as np
 import cv2
 import mediapipe as mp
+import math
 
 from filterpy.kalman import KalmanFilter
-from filterpy.common import Q_discrete_white_noise
+from filterpy.common import Q_discrete_white_noise , kinematic_kf
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
@@ -15,34 +16,47 @@ uhand = pyuhand.UHand("/dev/ttyUSB0")
 
 timedelta = 0.06
 
-class KalFilter(object):
-    def __init__(self, initPos = 0):
+class FingerTracker(object):
+    def __init__(self, dt):
+        self._tracks = {}
+        for i in range(4):
+            self._tracks[i] = KalFilter3D(dt)
+    
+    def predict(self):
+        for i in range(len(self._tracks)):
+            self._tracks[i].predict()
+    
+    def update(self, point1, point2, point3, point4):
+        self._tracks[0].update(point1)
+        self._tracks[1].update(point2)
+        self._tracks[2].update(point3)
+        self._tracks[3].update(point4)
+    
+    def getState(self, index):
+        return self._tracks[index].getStatePos()
 
-        # time between frames
-        dt=0.06
-        self._f = KalmanFilter (dim_x=2, dim_z=1)
-        self._f.x = np.array([[initPos],    # position
-                        [0.]])   # velocity
 
-        # state transition matrix
-        self._f.F = np.array([[1.,1.],
-                        [0.,1.]])
+class KalFilter3D(object):
+    def __init__(self, dt, initX = 0, initY=0, initZ=0):
+        self._f = kinematic_kf(dim=3, order=1, dt=dt, order_by_dim = False)
+        self._f.x = np.array([[initX],    # x position
+                        [initY],
+                        [initZ],
+                        [0.], # velocity
+                        [0.],
+                        [0.]])
 
-        # measurement
-        self._f.H = np.array([[1.,0 ]])
-
-        # covariance matrix
-        self._f.P = np.array([[1000.,    0.],
-                        [   0., 1000.] ])
-
-        # noise in the measurement
-        self._f.R = 10
+        # noise in the measurement from camera
+        noiseX = 0.2
+        noiseY = 0.5
+        noiseZ = 0.8
+        self._f.R = np.diag([noiseX, noiseY, noiseZ])
 
         # process uncertainty
-        # variance: how much the model changes between steps
-        # TODO: estimate noise from camera
-        global timedelta
-        self._f.Q = Q_discrete_white_noise(dim=2, dt=timedelta, var=100)
+        # how much the model changes between steps
+        processNoisePos = 0.06 
+        processNoiseVel = 0.1  
+        self._f.Q = np.diag([processNoisePos, processNoisePos, processNoisePos, processNoiseVel, processNoiseVel, processNoiseVel])
     
     def predict(self):
         self._f.predict()
@@ -51,7 +65,23 @@ class KalFilter(object):
         self._f.update(posMeasure)
     
     def getStatePos(self):
-        return self._f.x[0]
+        return np.array([self._f.x[0][0], self._f.x[1][0], self._f.x[2][0]])
+    
+
+class VarMeasure(object):
+    def __init__(self, size):
+        self._size = size
+        self._store = []
+
+    def addValue(self, value):
+        self._store.append(value)
+        while(len(self._store) > self._size):
+            self._store.pop(0)
+    
+    def getVariance(self):
+        if len(self._store) == 0:
+            return 0
+        return math.sqrt(np.var(self._store))
 
 lastposition = {}
 lastposition[1] = 0
@@ -61,13 +91,16 @@ lastposition[4] = 0
 lastposition[5] = 0
 lastTime = time.time()
 
-kalFilter = {}
-kalFilter[1] = KalFilter()
-kalFilter[2] = KalFilter()
-kalFilter[3] = KalFilter()
-kalFilter[4] = KalFilter()
-kalFilter[5] = KalFilter()
+fingers = {}
+fingers[1] = FingerTracker(timedelta)
+fingers[2] = FingerTracker(timedelta)
+fingers[3] = FingerTracker(timedelta)
+fingers[4] = FingerTracker(timedelta)
+fingers[5] = FingerTracker(timedelta)
 
+varMeasure = VarMeasure(100)
+
+lastKeyPoints = None
 def angle(v1, v2, acute = True):
     angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
     if (acute == True):
@@ -100,24 +133,35 @@ def processLandMarks(hand_landmarks, useKalman):
     angleMin = 2
     
     position = {}
-    
-    position[1] = calculateFinger(keypoints[1], keypoints[2], keypoints[3], keypoints[4], 2.3, 3.) # use different percentage mapping for thumb
-    position[2] = calculateFinger(keypoints[5], keypoints[6], keypoints[7], keypoints[8], angleMin, angleMax)
-    position[3] = calculateFinger(keypoints[9], keypoints[10], keypoints[11], keypoints[12], angleMin, angleMax)
-    position[4] = calculateFinger(keypoints[13], keypoints[14], keypoints[15], keypoints[16], angleMin, angleMax)
-    position[5] = calculateFinger(keypoints[17], keypoints[18], keypoints[19], keypoints[20], angleMin, angleMax)
+    global lastKeyPoints
+    if lastKeyPoints != None:
+        varMeasure.addValue(lastKeyPoints[12][2])
+    lastKeyPoints = keypoints
+    print(varMeasure.getVariance())
+    if useKalman: 
+        for i in range (1, 6):
+            fingers[i].predict()
+
+        fingers[1].update(keypoints[1], keypoints[2], keypoints[3], keypoints[4])
+        fingers[2].update(keypoints[5], keypoints[6], keypoints[7], keypoints[8])
+        fingers[3].update(keypoints[9], keypoints[10], keypoints[11], keypoints[12])
+        fingers[4].update(keypoints[13], keypoints[14], keypoints[15], keypoints[16])
+        fingers[5].update(keypoints[17], keypoints[18], keypoints[19], keypoints[20])
+
+        position[1] = calculateFinger(fingers[1].getState(0),fingers[1].getState(1),fingers[1].getState(2),fingers[1].getState(3), 2.3, 3.) # use different percentage mapping for thumb
+        for i in range(2, 6):
+            position[i] = calculateFinger(fingers[i].getState(0),fingers[i].getState(1),fingers[i].getState(2),fingers[i].getState(3), angleMin, angleMax) # use different percentage mapping for thumb
+    else:
+        position[1] = calculateFinger(keypoints[1], keypoints[2], keypoints[3], keypoints[4], 2.3, 3.) # use different percentage mapping for thumb
+        position[2] = calculateFinger(keypoints[5], keypoints[6], keypoints[7], keypoints[8], angleMin, angleMax)
+        position[3] = calculateFinger(keypoints[9], keypoints[10], keypoints[11], keypoints[12], angleMin, angleMax)
+        position[4] = calculateFinger(keypoints[13], keypoints[14], keypoints[15], keypoints[16], angleMin, angleMax)
+        position[5] = calculateFinger(keypoints[17], keypoints[18], keypoints[19], keypoints[20], angleMin, angleMax)
     velocity = {}
     for i in range(1, 6):
-        velocity[i] = (lastposition[i] - position[i]) / timedelta
-        kalFilter[i].predict()
-        kalFilter[i].update(position[i])
+        uhand.setTargetPercent(i, position[i])
     timenow = time.time()
 
-    for i in range(1,6):
-        if useKalman: 
-            uhand.setTargetPercent(i, kalFilter[i].getStatePos())
-        else: 
-            uhand.setTargetPercent(i, position[i])
     uhand.execute(0)
 
     # store old data
@@ -128,9 +172,9 @@ def processLandMarks(hand_landmarks, useKalman):
 # For webcam input:
 cap = cv2.VideoCapture(0)
 with mp_hands.Hands(
-        min_detection_confidence=0.9,
+        min_detection_confidence=0.7,
         min_tracking_confidence=0.5) as hands:
-    useKalman = False
+    useKalman = True
     while cap.isOpened():
         success, image = cap.read()
         if not success:
