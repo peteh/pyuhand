@@ -8,11 +8,11 @@ class UHand(object):
         self._axes = []
 
         # TODO: double check all limits
-        self._axes.append(Axis(1, "Thumb", 800, 2400, reverse = True))
-        self._axes.append(Axis(2, "Index", 800, 2000)) # overwrite offical limit because mine has a screw there
+        self._axes.append(Axis(1, "Thumb", 700, 2500, reverse = True))
+        self._axes.append(Axis(2, "Index", 700, 2000)) # overwrite offical limit because mine has a screw there
         self._axes.append(Axis(3, "Middle", 700, 2000))
-        self._axes.append(Axis(4, "Ring", 800, 2050))
-        self._axes.append(Axis(5, "Pinky", 800, 2050))
+        self._axes.append(Axis(4, "Ring", 700, 2000))
+        self._axes.append(Axis(5, "Pinky", 700, 2100))
         self._axes.append(Axis(6, "Wrist", 500, 2500))
         self._comPort = comPort
 
