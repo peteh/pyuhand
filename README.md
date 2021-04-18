@@ -34,7 +34,7 @@ uhand.execute(200) # reach the goal position for all fingers in 200ms
 ```
 
 ## Complex Motions
-Uhand2 comes with a Windows application that can create complex motions and save them to xml files. The library provides you with the ability to replay these recorded motions as well. Some samples can be found in the *motions* folder. 
+Uhand2 comes with a Windows application that can create complex motions and save them to xml files. The pyuhand library provides you with the ability to replay these recorded motions as well. Some samples can be found in the *motions* folder. 
 
 ```python
 import pyuhand
