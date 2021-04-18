@@ -11,7 +11,7 @@ class UHand(object):
         self._axes.append(Axis(1, "Thumb", 700, 2500, reverse = True))
         self._axes.append(Axis(2, "Index", 700, 2000)) # overwrite offical limit because mine has a screw there
         self._axes.append(Axis(3, "Middle", 700, 2000))
-        self._axes.append(Axis(4, "Ring", 700, 2000))
+        self._axes.append(Axis(4, "Ring", 700, 2100))
         self._axes.append(Axis(5, "Pinky", 700, 2100))
         self._axes.append(Axis(6, "Wrist", 500, 2500))
         self._comPort = comPort
@@ -43,6 +43,13 @@ class UHand(object):
     def setTargetPercentAll(self ,percent):
         for axis in self._axes:
             axis.setTargetPercent(percent)
+
+    def executeSingleServo(self, timeDeltaMs = 1000.):
+        for axis in self._axes:
+            if axis.needsExecution():
+                axis.markExecuted()
+                self._singleServoCtrlVal(axis.getId(), timeDeltaMs, axis.getValue())
+        time.sleep(timeDeltaMs/1000.)    
 
     def execute(self, timeDeltaMs = 1000.):
         builder = ProtocolCommandBuilder(timeDeltaMs)
