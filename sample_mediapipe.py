@@ -171,12 +171,12 @@ def processLandMarks(keyPoints, fixedHandAngle):
     if fixedHandAngle:
         uhand.setTargetPercent(6, 100)
 
-    uhand.execute(0)
+    uhand.execute(timedelta * 1000, blocking=False)
     
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-uhand = pyuhand.UHand("/dev/ttyUSB9")
+uhand = pyuhand.UHand("/dev/ttyUSB0")
 
 timedelta = 0.06
 # For webcam input:
@@ -222,7 +222,7 @@ with mp_hands.Hands(
                 mp_drawing.draw_landmarks(
                     image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
         cv2.imshow('MediaPipe Hands', image)
-        key = cv2.waitKey(int(timedelta * 1000. *0.9))
+        key = cv2.waitKey(int(timedelta * 1000. * 0.9))
         if key == ord('a'):
             useKalman = not useKalman
             print ("Use Kalman: %d" % (useKalman))
