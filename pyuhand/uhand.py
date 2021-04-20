@@ -60,14 +60,15 @@ class UHand(object):
         for axis in self._axes:
             axis.setTargetPercent(percent)
 
-    def executeSingleServo(self, timeDeltaMs = 1000.):
+    def executeSingleServo(self, timeDeltaMs = 1000., blocking = True):
         for axis in self._axes:
             if axis.needsExecution():
                 axis.markExecuted()
                 self._singleServoCtrlVal(axis.getId(), timeDeltaMs, axis.getValue())
-        time.sleep(timeDeltaMs/1000.)    
+        if blocking: 
+            time.sleep(timeDeltaMs/1000.)    
 
-    def execute(self, timeDeltaMs = 1000.):
+    def execute(self, timeDeltaMs = 1000., blocking = True):
         builder = ProtocolCommandBuilder(timeDeltaMs)
         needsExecution = False
         for axis in self._axes:
@@ -78,7 +79,8 @@ class UHand(object):
         if needsExecution:
             buildCommand = builder.build()
             self.serial.write(buildCommand)
-        time.sleep(timeDeltaMs/1000.)
+        if blocking: 
+            time.sleep(timeDeltaMs / 1000.)
     
     def executeMotion(self, motion):
         for frame in motion.getFrames():
