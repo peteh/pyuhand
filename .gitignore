@@ -1,3 +1,5 @@
 pyuhand/__pycache__/*
 .vscode/.ropeproject/objectdb
 .venv/*
+build/
+dist/
