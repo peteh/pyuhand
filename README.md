@@ -8,6 +8,15 @@ I am in now way affilliated with the company and this is purely a hobby project 
 
 The library provides an abstraction of the hand in which each axis can be commanded the range [0, 100]. 
 
+## Installation
+### From Git Repository
+To install, clone the repository and run 
+```bash
+git clone https://github.com/peteh/pyuhand.git
+cd pyuhand
+python setup.py install
+```
+
 ## Moving Fingers and Wrist
 First create an instant of your uhand by giving it the correct serial connection address. 
 
