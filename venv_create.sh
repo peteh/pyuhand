@@ -4,4 +4,4 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python setup.py develop
+#python setup.py develop
