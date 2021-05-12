@@ -16,10 +16,6 @@
 
 import xml.etree.ElementTree as ET
 
-class MotionReader(object):
-    def __init__(self):
-        pass
-
 class Motion(object):
     def __init__(self):
         self._frames = []
@@ -80,6 +76,4 @@ class MotionFrame(object):
     def getTimeMs(self):
         return self._timeMs
 
-frame = MotionFrame()
-frame.setAxisTarget(1, 2000)
 
