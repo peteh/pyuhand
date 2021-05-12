@@ -37,7 +37,7 @@ class UHandSkill(object):
     def _onConnect(self, client, userdata, flags, rc):
         # subscribe to all messages
         client.subscribe('hermes/intent/uhand:hello')
-        client.subscribe('hermes/intent/uhand:blabla')	
+        client.subscribe('hermes/intent/uhand:viktor')	
 
     def start(self):
         self._mqtt_client.connect('rhasspy.local', 1883)
@@ -94,6 +94,30 @@ class UHandSkill(object):
         time.sleep(2)
         uhand.setTargetPercentAll(0)
         uhand.execute(500)
+    
+    def _party(self):
+        for i in range(4):
+            uhand.setTargetPercent(1, 50)
+            uhand.setTargetPercent(2, 100)
+            uhand.setTargetPercent(3, 100)
+            uhand.setTargetPercent(4, 100)
+            uhand.setTargetPercent(5, 100)
+            uhand.setTargetPercent(6, 50)
+            uhand.execute(500)
+            uhand.setTargetPercent(1, 50)
+            uhand.setTargetPercent(2, 0)
+            uhand.setTargetPercent(3, 0)
+            uhand.setTargetPercent(4, 0)
+            uhand.setTargetPercent(5, 0)
+            uhand.setTargetPercent(6, 50)
+            uhand.execute(500)
+        uhand.setTargetPercentAll(0)
+        uhand.execute(500)
+        motion = pyuhand.Motion.fromFile("../motions/motions/13 Horns.xml")
+        uhand.executeMotion(motion)
+        time.sleep(5)
+        uhand.setTargetPercentAll(0)
+        uhand.execute(800)
         
     def stop(self):
         print("Skill should end")
@@ -104,6 +128,10 @@ class UHandSkill(object):
         data = json.loads(msg.payload.decode("utf-8"))
         sessionId = data['sessionId']
         print("TOPIC:"+ msg.topic)
+
+        if("uhand:viktor" in msg.topic):
+            text = "Hello Viktor! Have a great day and a happy birthday. Yeaaah Yeaaah Party hard! "
+            function = self._party
 
         if("uhand:hello" in msg.topic):
             text = "Hello Peter. I wish you a beatiful day!"
