@@ -1,1 +1,1 @@
- * publish versions to pipy
+ * make encoder target setting public

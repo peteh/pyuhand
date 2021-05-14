@@ -21,6 +21,11 @@ from .motion import Motion, MotionFrame
 
 class UHand(object):
     def __init__(self, comPort):
+        """Creates a new uHand instance. 
+
+        Args:
+            comPort (string): Serial port address, COMx for windows, /dev/ttyx for Linux
+        """
         self._axes = []
 
         # TODO: double check all limits
@@ -69,6 +74,14 @@ class UHand(object):
             time.sleep(timeDeltaMs/1000.)    
 
     def execute(self, timeDeltaMs = 1000., blocking = True):
+        """Executes a motion to reach all currently set finger position targets. 
+
+        Args:
+            timeDeltaMs (int, optional): The time in milliseconds in which the 
+            targets should be reached. Defaults to 1000..
+            blocking (bool, optional): The method blocks until the motion is 
+            finished if set to true. Defaults to True.
+        """
         builder = ProtocolCommandBuilder(timeDeltaMs)
         needsExecution = False
         for axis in self._axes:
@@ -83,6 +96,11 @@ class UHand(object):
             time.sleep(timeDeltaMs / 1000.)
     
     def executeMotion(self, motion):
+        """Executes a given motion on the hand. The function will block until the motion is finished. 
+
+        Args:
+            motion (Motion): The motion that should be executed
+        """
         for frame in motion.getFrames():
             for axisId, value in frame._axisValues.items():
                 self.setTargetValue(axisId, value)
@@ -133,9 +151,16 @@ class Axis(object):
             self._value = value
 
     def markExecuted(self):
+        """Marks the current position as being executed (target = current pos)
+        """
         self._needsExecution = False
     
     def needsExecution(self):
+        """Returns True if the axis should be moved to the target position
+
+        Returns:
+            bool: true if the axis should be moved to the target pos
+        """
         return self._needsExecution
 
     def getValue(self):
@@ -149,6 +174,11 @@ class Axis(object):
         return value
 
     def setTargetPercent(self, percent):
+        """Sets a new target in percent [0-100]. 100 means open, 0 means closed. 
+
+        Args:
+            percent (int): 100 is open, 0 is closed
+        """
         percent = self._clampPercent(percent)
         if(self._reverse):
             value = (int) (self._highLimit-(percent*((self._highLimit - self._lowLimit)/100)))
