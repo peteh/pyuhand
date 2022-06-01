@@ -14,10 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pyuhand
 import glob
 import time
-uhand = pyuhand.UHand("/dev/ttyUSB0")
+
 
 import paho.mqtt.client as mqtt
 import threading
@@ -47,77 +46,21 @@ class UHandSkill(object):
         self._mqtt_client.loop_forever()
         print("Ended Skill")
     
-    def _wave(self):
-        for i in range(3):
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 100)
-            uhand.setTargetPercent(3, 100)
-            uhand.setTargetPercent(4, 100)
-            uhand.setTargetPercent(5, 100)
-            uhand.setTargetPercent(6, 50)
-            uhand.execute(500)
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 0)
-            uhand.setTargetPercent(3, 0)
-            uhand.setTargetPercent(4, 0)
-            uhand.setTargetPercent(5, 0)
-            uhand.setTargetPercent(6, 50)
-            uhand.execute(500)
-        uhand.setTargetPercentAll(0)
-        uhand.execute(500)
-    
-    def _point(self):
-        for i in range(5):
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 100)
-            uhand.setTargetPercent(3, 0)
-            uhand.setTargetPercent(4, 0)
-            uhand.setTargetPercent(5, 0)
-            uhand.setTargetPercent(6, 100)
-            uhand.execute(500)
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 60)
-            uhand.setTargetPercent(3, 0)
-            uhand.setTargetPercent(4, 0)
-            uhand.setTargetPercent(5, 0)
-            uhand.setTargetPercent(6, 100)
-            uhand.execute(500)
+    def _circle(self):
+        elapsed = 0
+        delay = 0.05
+        while elapsed < 2.:
+            returnMsg = {
+                    "left" : 1., 
+                    "left" : -1., 
+                    "honk": 0
+                    }
+            client.publish("remote", json.dumps(returnMsg))
+            time.sleep(delay)
+            elapsed += delay
         
-        uhand.setTargetPercent(1, 0)
-        uhand.setTargetPercent(2, 0)
-        uhand.setTargetPercent(3, 100)
-        uhand.setTargetPercent(4, 0)
-        uhand.setTargetPercent(5, 0)
-        uhand.setTargetPercent(6, 0)
-
-        uhand.execute(500)
-        time.sleep(2)
-        uhand.setTargetPercentAll(0)
-        uhand.execute(500)
-    
-    def _party(self):
-        for i in range(4):
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 100)
-            uhand.setTargetPercent(3, 100)
-            uhand.setTargetPercent(4, 100)
-            uhand.setTargetPercent(5, 100)
-            uhand.setTargetPercent(6, 50)
-            uhand.execute(500)
-            uhand.setTargetPercent(1, 50)
-            uhand.setTargetPercent(2, 0)
-            uhand.setTargetPercent(3, 0)
-            uhand.setTargetPercent(4, 0)
-            uhand.setTargetPercent(5, 0)
-            uhand.setTargetPercent(6, 50)
-            uhand.execute(500)
-        uhand.setTargetPercentAll(0)
-        uhand.execute(500)
-        motion = pyuhand.Motion.fromFile("../motions/motions/13 Horns.xml")
-        uhand.executeMotion(motion)
-        time.sleep(5)
-        uhand.setTargetPercentAll(0)
-        uhand.execute(800)
+    def _beep(self):
+        pass
         
     def stop(self):
         print("Skill should end")
@@ -131,18 +74,18 @@ class UHandSkill(object):
 
         if("uhand:viktor" in msg.topic):
             text = "Hello Viktor! Have a great day and a happy birthday. Yeaaah Yeaaah Party hard! "
-            function = self._party
+            function = self._circle
 
         if("uhand:hello" in msg.topic):
             text = "Hello Peter. I wish you a beatiful day!"
-            function = self._wave
+            function = self._circle
 
         if("uhand:insult" in msg.topic):
             text = "Hello Peter. I wish you a beatiful day!"
             function = self._wave
         if("uhand:blabla" in msg.topic):
             text = "Bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla"
-            function = self._point
+            function = self._circle
 
         waveThread = threading.Thread(target = function)
         waveThread.start()

@@ -186,7 +186,7 @@ with mp_hands.Hands(
         min_tracking_confidence=0.5) as hands:
     
     useKalman = True
-    fixedHandAngle = True
+    fixedHandAngle = False
     
     filters = KeyPointFilter(21, timedelta)
     while cap.isOpened():
